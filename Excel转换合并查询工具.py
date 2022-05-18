@@ -1,16 +1,16 @@
 # -*- coding:utf-8 -*-
-import os
-import win32com.client as win32
-import time
-import pywintypes
-import win32api
-import xlrd
-import xlsxwriter
-import glob
-import pandas as pd
 import contextlib
 import copy
+import glob
+import os
+import pandas as pd
 import pathlib
+import pywintypes
+import time
+import win32api
+import win32com.client as win32
+import xlrd
+import xlsxwriter
 
 
 path = os.getcwd()
@@ -30,9 +30,8 @@ def makexls():
     # 三个参数：父目录；所有文件夹名（不含路径）；所有文件名
     all_exce = glob.glob("*.xlsx")
     if (len(all_exce) == 0):
-        return 0
-        end = input("不存在xls文件，按Enter结束程序")
-        exit()
+        print("当前目录不存在xlsx文件")
+        pass
     else:
         for parent, dirnames, filenames in os.walk(inputdir):
             for fn in filenames:
@@ -48,8 +47,8 @@ def makexls():
                     wb.Close()
                     excel.Application.Quit()
         print("转换完成!")
-    input("按Enter结束程序")
-    exit()
+    input("按Enter返回主菜单")
+
 
 
 """
@@ -61,30 +60,25 @@ def makexlsx():
     # 三个参数：父目录；所有文件夹名（不含路径）；所有文件名
     all_exce = glob.glob("*.xls")
     if (len(all_exce) == 0):
-        return 0
-        end = input("不存在xls文件，按Enter结束程序")
-        exit()
+        print("当前目录不存在xls文件")
+        pass
     else:
-        try:
-            for parent, dirnames, filenames in os.walk(inputdir):
-                for fn in filenames:
-                    if fn.split('.')[-1] == "xls":
-                        filedir = os.path.join(parent, fn)
-                        print("当前进行到:%s" % (filedir))
-                        excel = win32.gencache.EnsureDispatch(
-                            'Excel.Application')
-                        wb = excel.Workbooks.Open(filedir)
-                        # xlsx: FileFormat=51
-                        # xls:  FileFormat=56
-                        wb.SaveAs(
-                            (os.path.join(outputdir, fn.replace('xls', 'xlsx'))), FileFormat=51)
-                        wb.Close()
-                        excel.Application.Quit()
-        except:
-            pass
+        for parent, dirnames, filenames in os.walk(inputdir):
+            for fn in filenames:
+                if fn.split('.')[-1] == "xls":
+                    filedir = os.path.join(parent, fn)
+                    print("当前进行到:%s" % (filedir))
+                    excel = win32.gencache.EnsureDispatch(
+                        'Excel.Application')
+                    wb = excel.Workbooks.Open(filedir)
+                    # xlsx: FileFormat=51
+                    # xls:  FileFormat=56
+                    wb.SaveAs(
+                        (os.path.join(outputdir, fn.replace('xls', 'xlsx'))), FileFormat=51)
+                    wb.Close()
+                    excel.Application.Quit()
         print("转换完成!")
-    input("按Enter结束程序")
-    exit()
+    input("按Enter返回主菜单")
 
 
 """
@@ -99,9 +93,9 @@ def get_exce():
     all_exce = glob.glob("*.xls")
     print("该目录下有" + str(len(all_exce)) + "个xls表格文件：")
     if (len(all_exce) == 0):
-        return 0
-        input("按Enter结束程序")
-        exit()
+        print("当前目录不存在xls文件")
+        input("按Enter返回主菜单")
+        pass
     else:
         for i in range(len(all_exce)):
             print(all_exce[i])
@@ -173,9 +167,9 @@ def merge():
     outfile = path + '\\out\\汇总.xlsx'
     print("该目录下有" + str(len(all_exce)) + "个xlsx表格文件")
     if (len(all_exce) == 0):
-        return 0
-        input("按Enter结束程序")
-        exit()
+        print("当前目录不存在xlsx文件")
+        input("按Enter返回主菜单")
+        pass
     else:
         arr = []
         print("开始合并xlsx...")
@@ -195,7 +189,7 @@ def merge():
                     pd.concat(arr).to_excel(writer, 'sheet1', index=False)
                     writer.save()
         print("汇总.xlsx输出成功！")
-        input("按Enter结束程序")
+        input("按Enter返回主菜单")
         exit()
 
 
@@ -209,7 +203,7 @@ def printFinder(val):
 def getusefile():
     # 查当前目录下所有xls xlsx文件，返回文件名列表
     usefile = []
-    excelfile = sorted(pathlib.Path('.').glob('**/*.xls*'))
+    excelfile = sorted(pathlib.Path('.').glob('**/*.xls'))
     usefile = [str(tpfile) for tpfile in excelfile]
     return copy.deepcopy(usefile)
 
@@ -248,7 +242,7 @@ def rdusefile(fileName, checkvalue):
 def checkvalue(val):
     # 在当前目录的所有Excel表里找一个字符的位置
     # 获取当前目录内所有Excel 文件列表
-    print("咔哒咔哒,工作拉 ^。^  开始找  "+val)
+    print("开始找  "+val)
     filelist = getusefile()
     check = []
     # 在每一个文件中查找目标数据
@@ -265,80 +259,82 @@ def checkvalue(val):
 
 
 
-
-os.system("cls")
-print("============Excel文件工具箱============")
-print("请选择需要的功能！请将本程序放到需要转换的文件目录中")
-print("1. xlsx转换成xls\n2. xls转换成xlsx\n3. 合并所有xls\n4. 合并所有xlsx\n5. xls字符串查询工具")
-a = int(input("请输入需要转换的格式, 选择序号:\n"))
-if a == 1:
-    makexls()
-elif a == 2:
-    makexlsx()
-elif a == 3:
-    print("使用本程序只需要把程序放到需要合并表格同目录下")
-    all_exce = get_exce()
-    # 得到要合并的所有exce表格数据
-    if (all_exce == 0):
-        print("该目录下无.xls文件！请把程序移动到要合并的表格同目录下！")
-        input("按Enter结束程序")
+while True:
+    os.system("cls")
+    print("============Excel文件工具箱============")
+    print("请选择需要的功能！请将本程序放到需要转换的文件目录中")
+    print("1. xlsx转换成xls\n2. xls转换成xlsx\n3. 合并所有xls\n4. 合并所有xlsx\n5. xls字符串查询工具\n6. 退出程序")
+    a = int(input("请输入需要转换的格式, 选择序号:\n"))
+    if a == 1:
+        makexls()
+    elif a == 2:
+        makexlsx()
+    elif a == 3:
+        print("使用本程序只需要把程序放到需要合并表格同目录下")
+        all_exce = get_exce()
+        # 得到要合并的所有exce表格数据
+        if (all_exce == 0):
+            print("该目录下无.xls文件！请把程序移动到要合并的表格同目录下！")
+            pass
+        if (len(all_exce) == 1):
+            print("该目录下只有一个.xls文件！无需合并")
+            pass
+        # 表头数
+        print("自动检测表头中......")
+        biao_tou_num = get_biao_tou_num(all_exce[0], all_exce[1])
+        print("表头数为:", biao_tou_num,)
+        guess = input("y/n?")
+        if(guess == "n"):
+            biao_tou_num = input("请输入表头数:")
+            biao_tou_num = int(biao_tou_num)
+        all_data1 = []
+        # 用于保存合并的所有行的数据
+        # 下面开始文件数据的获取
+        for exce in all_exce:
+            fh = open_exce(exce)
+            # 打开文件
+            sheets = get_sheet(fh)
+            # 获取文件下的sheet数量
+            for sheet in range(len(sheets)):
+                row = get_sheetrow_num(sheets[sheet])
+                # 获取一个sheet下的所有的数据的行数
+                all_data2 = get_sheet_data(sheets[sheet], row, biao_tou_num)
+                # 获取一个sheet下的所有行的数据
+        for i in range(biao_tou_num):
+            all_data2.insert(i, biao_tou[i])
+        # 表头写入
+        new_name = input("清输入新表的名称:")
+        # 下面开始文件数据的写入
+        new_exce = path + "\\out\\" +new_name+".xls"
+        # 新建的exce文件名字
+        fh1 = xlsxwriter.Workbook(new_exce)
+        # 新建一个exce表
+        new_sheet = fh1.add_worksheet()
+        # 新建一个sheet表
+        for i in range(len(all_data2)):
+            for j in range(len(all_data2[i])):
+                c = all_data2[i][j]
+                new_sheet.write(i, j, c)
+        fh1.close()
+        # 关闭该exce表
+        print("文件合并成功,请查看"+new_exce+"文件！")
+        input("按Enter返回主菜单")
+    elif a == 4:
+        merge()
+    elif a == 5:
+        # 查字符在哪里
+        while(1):
+            print("\n将要找的文件放在同一个文件夹里哦 =。=")
+            findVal = input("请输入要找的字:")
+            if findVal != "":
+                checkall = checkvalue(findVal)
+                print(str(checkall))
+                print
+    elif a == 6:
+        print("程序即将推出...")
+        time.sleep(3)
+        exit()            
+    else:
+        print("输入错误程序即将退出!")
+        time.sleep(3)
         exit()
-    if (len(all_exce) == 1):
-        print("该目录下只有一个.xls文件！无需合并")
-        input("按Enter结束程序")
-        exit()
-    # 表头数
-    print("自动检测表头中......")
-    biao_tou_num = get_biao_tou_num(all_exce[0], all_exce[1])
-    print("表头数为:", biao_tou_num,)
-    guess = input("y/n?")
-    if(guess == "n"):
-        biao_tou_num = input("请输入表头数:")
-        biao_tou_num = int(biao_tou_num)
-    all_data1 = []
-    # 用于保存合并的所有行的数据
-    # 下面开始文件数据的获取
-    for exce in all_exce:
-        fh = open_exce(exce)
-        # 打开文件
-        sheets = get_sheet(fh)
-        # 获取文件下的sheet数量
-        for sheet in range(len(sheets)):
-            row = get_sheetrow_num(sheets[sheet])
-            # 获取一个sheet下的所有的数据的行数
-            all_data2 = get_sheet_data(sheets[sheet], row, biao_tou_num)
-            # 获取一个sheet下的所有行的数据
-    for i in range(biao_tou_num):
-        all_data2.insert(i, biao_tou[i])
-    # 表头写入
-    new_name = input("清输入新表的名称:")
-    # 下面开始文件数据的写入
-    new_exce = new_name+".xls"
-    # 新建的exce文件名字
-    fh1 = xlsxwriter.Workbook(new_exce)
-    # 新建一个exce表
-    new_sheet = fh1.add_worksheet()
-    # 新建一个sheet表
-    for i in range(len(all_data2)):
-        for j in range(len(all_data2[i])):
-            c = all_data2[i][j]
-            new_sheet.write(i, j, c)
-    fh1.close()
-    # 关闭该exce表
-    print("文件合并成功,请查看"+new_exce+"文件！")
-    input("按Enter结束程序")
-elif a == 4:
-    merge()
-elif a == 5:
-    # 查字符在哪里
-    while(1):
-        print("\n将要找的文件放在同一个文件夹里哦 =。=")
-        findVal = input("请输入要找的字:")
-        if findVal != "":
-            checkall = checkvalue(findVal)
-            print(str(checkall))
-            print
-else:
-    print("输入错误程序即将退出!")
-    time.sleep(3)
-    exit()
