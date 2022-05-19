@@ -11,6 +11,15 @@ import win32api
 import win32com.client as win32
 import xlrd
 import xlsxwriter
+import tkinter as tk
+from tkinter import filedialog
+import openpyxl
+import xlwt
+import csv
+from tkinter import filedialog, Tk
+import sys
+from datetime import date, datetime
+import tkinter.filedialog
 
 
 path = os.getcwd()
@@ -50,7 +59,6 @@ def makexls():
     input("按Enter返回主菜单")
 
 
-
 """
 转换xlsx功能
 """
@@ -85,117 +93,130 @@ def makexlsx():
 合并xls功能
 """
 
-biao_tou = []
-# 获取要合并的所有exce表格
+
+# 读取当前路径下面全部的Excel
+def pakxls():
+    root = tk.Tk()
+    root.withdraw()
+
+    # 选择文件夹位置
+    filelocation = os.path.normpath(
+        filedialog.askdirectory(initialdir=os.getcwd()))
+    lst = []
+
+    # 读取文件夹下所有文件（xls和xlsx都读取）
+    for i in glob.glob(filelocation + "\\\\" + "*.*"):
+        if os.path.splitext(i)[1] in [".xls", ".xlsx"]:
+            lst.append(pd.read_excel(i))
+    print("选择输出保存文件位置:")
+    # 保存合并后的excel文件
+    writer = pd.ExcelWriter(filedialog.asksaveasfilename(title="保存", initialdir=filelocation,
+                                                         defaultextension="xlsx", filetypes=[("Excel 工作簿", "*.xlsx"), ("Excel 97-2003 工作簿", "*.xls")]))
+    pd.concat(lst).to_excel(writer, 'all', index=False)
+    writer.save()
+    print('\n%d个文件已经合并成功！' % len(lst))
 
 
-def get_exce():
-    all_exce = glob.glob("*.xls")
-    print("该目录下有" + str(len(all_exce)) + "个xls表格文件：")
-    if (len(all_exce) == 0):
-        print("当前目录不存在xls文件")
-        input("按Enter返回主菜单")
-        pass
-    else:
-        for i in range(len(all_exce)):
-            print(all_exce[i])
-        return all_exce
-# 打开Exce文件
+"""
+xlsx文件转csv文件
+"""
+# 生成的csv文件名
 
 
-def open_exce(name):
-    fh = xlrd.open_workbook(name)
-    return fh
-# 获取exce文件下的所有sheet
-
-
-def get_sheet(fh):
-    sheets = fh.sheets()
-    return sheets
-# 获取sheet下有多少行数据
-
-
-def get_sheetrow_num(sheet):
-    return sheet.nrows
-# 获取sheet下的数据
-
-
-def get_sheet_data(sheet, row, biao_tou_num):
-    for i in range(row):
-        if (i < biao_tou_num):
-            global biao_tou
-            values = sheet.row_values(i)
-            biao_tou.append(values)
-            continue
-        values = sheet.row_values(i)
-        all_data1.append(values)
-    return all_data1
-# 获取表头数量
-
-
-def get_biao_tou_num(exce1, exce2):
-    fh = open_exce(exce1)
-    fhx = open_exce(exce2)
-    sheet_1 = fh.sheet_by_index(0)
-    sheet_2 = fhx.sheet_by_index(0)
-    row_sum_1 = sheet_1.nrows
-    row_sum_2 = sheet_2.nrows
-    # 获取第一张sheet表对象有效行数
-    # 获取sheet表某一行所有数据类型及值
-    for i in range(row_sum_1):
-        # 获取sheet表对象某一行数据值
-        if (i+1 == row_sum_2):
-            return i
-        #row_0_value = sheet_1.row_values(0)
-        row_content_1 = sheet_1.row_values(i)
-        row_content_2 = sheet_2.row_values(i)
-        if(row_content_1 == row_content_2):
-            continue
+def xlsx_to_csv_pd():
+    # 实现选择本地文件夹
+    path = os.getcwd()
+    root = tk.Tk()
+    root.withdraw()
+    print("选取您需要转换xlsx的文件!")
+    time.sleep(1)
+    while True:
+        print("请选取xlsx文件！")
+        file = tkinter.filedialog.askopenfilename()
+        if file.split('.')[-1] != "xlsx":
+            print("请选取xlsx文件！")
         else:
-            return i
+            data_xls = pd.read_excel(file, index_col=0)
+            data_xls.to_csv(path + '\\out\\转换csv.csv', encoding='utf-8')
+            break
 
 
 """
-合并xlsx功能
+批量xlsx文件转csv文件
 """
+# 生成的csv文件名
 
 
-def merge():
-    # 批量表所在文件夹路径
+def xlsx_to_csv_all():
+    # 实现选择本地文件夹
     path = os.getcwd()
     all_exce = glob.glob("*.xlsx")
-    outfile = path + '\\out\\汇总.xlsx'
-    print("该目录下有" + str(len(all_exce)) + "个xlsx表格文件")
     if (len(all_exce) == 0):
         print("当前目录不存在xlsx文件")
-        input("按Enter返回主菜单")
         pass
     else:
-        arr = []
-        print("开始合并xlsx...")
-        if os.path.exists(outfile) == True:
-            os.remove(outfile)
-            print("清理旧汇总xlsx文件成功")
-        else:
-            pass
-        open(outfile, "w")
-        time.sleep(3)
         for parent, dirnames, filenames in os.walk(inputdir):
             for fn in filenames:
                 if fn.split('.')[-1] == "xlsx":
-                    arr.append(pd.read_excel(fn))
-                    # 目标文件的路径
-                    writer = pd.ExcelWriter(outfile)
-                    pd.concat(arr).to_excel(writer, 'sheet1', index=False)
-                    writer.save()
-        print("汇总.xlsx输出成功！")
-        input("按Enter返回主菜单")
-        exit()
+                    data_xls = pd.read_excel(fn, index_col=0)
+                    data_xls.to_csv(path + "\\out\\" + fn +
+                                    ".csv", encoding='utf-8')
+
+
+"""
+批量csv文件转xlsx文件
+"""
+# 生成的csv文件名
+
+
+def csv_to_xlsx_all():
+    # 实现选择本地文件夹
+    path = os.getcwd()
+    all_exce = glob.glob("*.csv")
+    if (len(all_exce) == 0):
+        print("当前目录不存在csv文件")
+        pass
+    else:
+        for parent, dirnames, filenames in os.walk(inputdir):
+            for fn in filenames:
+                if fn.split('.')[-1] == "csv":
+                    csv = pd.read_csv(fn, encoding='utf-8')
+                    csv.to_excel(path + "\\out\\" + fn +
+                                 ".xlsx", sheet_name='data')
+
+
+"""
+csv文件转换成xlsx文件
+"""
+
+
+def csv_to_xlsx_pd():
+    path = os.getcwd()
+    root = tk.Tk()
+    root.withdraw()
+    print("选取您需要转换的csv文件!")
+    time.sleep(1)
+    file = tkinter.filedialog.askopenfilename()
+    while True:
+        print("请选取csv文件！")
+        file = tkinter.filedialog.askopenfilename()
+        if file.split('.')[-1] != "csv":
+            print("请选取csv文件！")
+        else:
+            csv = pd.read_csv(file, encoding='utf-8')
+            csv.to_excel(path + '\\out\\转换xlsx.xlsx', sheet_name='data')
+            break
+
+
+
+    
 
 
 """
 表格字符串查询工具
 """
+
+
 def printFinder(val):
     print(val)
 
@@ -254,74 +275,35 @@ def checkvalue(val):
     return copy.deepcopy(check)
 
 
-
-
-
-
-
 while True:
     os.system("cls")
-    print("============Excel文件工具箱============")
+    print("====================Excel文件工具箱====================")
     print("请选择需要的功能！请将本程序放到需要转换的文件目录中")
-    print("1. xlsx转换成xls\n2. xls转换成xlsx\n3. 合并所有xls\n4. 合并所有xlsx\n5. xls字符串查询工具\n6. 退出程序")
+    print("")
+    print("1. xlsx批量转换xls文件\n2. xls批量转换xlsx文件\n3. 合并所有xlsx/xls文件\n4. csv文件转换成xlsx文件\n5. xlsx文件转csv文件\n6. xls模糊查询工具\n7. 批量xlsx文件转csv文件\n8. 批量csv文件转xlsx文件\n0. 退出程序")
+    print("")
+    
+    print("当前工作目录:%s" % (path))
     a = int(input("请输入需要转换的格式, 选择序号:\n"))
     if a == 1:
         makexls()
     elif a == 2:
         makexlsx()
     elif a == 3:
-        print("使用本程序只需要把程序放到需要合并表格同目录下")
-        all_exce = get_exce()
-        # 得到要合并的所有exce表格数据
-        if (all_exce == 0):
-            print("该目录下无.xls文件！请把程序移动到要合并的表格同目录下！")
-            pass
-        if (len(all_exce) == 1):
-            print("该目录下只有一个.xls文件！无需合并")
-            pass
-        # 表头数
-        print("自动检测表头中......")
-        biao_tou_num = get_biao_tou_num(all_exce[0], all_exce[1])
-        print("表头数为:", biao_tou_num,)
-        guess = input("y/n?")
-        if(guess == "n"):
-            biao_tou_num = input("请输入表头数:")
-            biao_tou_num = int(biao_tou_num)
-        all_data1 = []
-        # 用于保存合并的所有行的数据
-        # 下面开始文件数据的获取
-        for exce in all_exce:
-            fh = open_exce(exce)
-            # 打开文件
-            sheets = get_sheet(fh)
-            # 获取文件下的sheet数量
-            for sheet in range(len(sheets)):
-                row = get_sheetrow_num(sheets[sheet])
-                # 获取一个sheet下的所有的数据的行数
-                all_data2 = get_sheet_data(sheets[sheet], row, biao_tou_num)
-                # 获取一个sheet下的所有行的数据
-        for i in range(biao_tou_num):
-            all_data2.insert(i, biao_tou[i])
-        # 表头写入
-        new_name = input("清输入新表的名称:")
-        # 下面开始文件数据的写入
-        new_exce = path + "\\out\\" +new_name+".xls"
-        # 新建的exce文件名字
-        fh1 = xlsxwriter.Workbook(new_exce)
-        # 新建一个exce表
-        new_sheet = fh1.add_worksheet()
-        # 新建一个sheet表
-        for i in range(len(all_data2)):
-            for j in range(len(all_data2[i])):
-                c = all_data2[i][j]
-                new_sheet.write(i, j, c)
-        fh1.close()
-        # 关闭该exce表
-        print("文件合并成功,请查看"+new_exce+"文件！")
+        print("请选择需要合并的目录")
+        pakxls()
+        print("全部合并完成!")
         input("按Enter返回主菜单")
+
     elif a == 4:
-        merge()
+        csv_to_xlsx_pd()
+        print("csv文件转xlsx文件结束，输出文件在out/转换xlsx.xlsx ")
+        input("按Enter返回主菜单")
     elif a == 5:
+        xlsx_to_csv_pd()
+        print('xlsx文件转csv文件结束，输出文件在out/转换csv.csv ')
+        input("按Enter返回主菜单")
+    elif a == 6:
         # 查字符在哪里
         while(1):
             print("\n将要找的文件放在同一个文件夹里哦 =。=")
@@ -330,11 +312,18 @@ while True:
                 checkall = checkvalue(findVal)
                 print(str(checkall))
                 print
-    elif a == 6:
+    elif a == 7:
+        xlsx_to_csv_all()
+        print('批量xlsx文件转csv文件结束，输出文件在out目录下 ')
+        input("按Enter返回主菜单")
+    elif a == 8:
+        csv_to_xlsx_all()
+        print('批量csv文件转xlsx文件结束，输出文件在out目录下 ')
+        input("按Enter返回主菜单")
+    elif a == 0:
         print("程序即将推出...")
-        time.sleep(3)
-        exit()            
-    else:
-        print("输入错误程序即将退出!")
-        time.sleep(3)
+        time.sleep(2)
         exit()
+    else:
+        print("输入错误返回主菜单!")
+        break
